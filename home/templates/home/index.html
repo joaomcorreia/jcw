@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .message {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .feature-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .admin-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 1rem;
+            transition: background 0.3s ease;
+        }
+        .admin-link:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ title }}</h1>
+        <p class="message">{{ message }}</p>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-title">Django Framework</div>
+                <p>Built with the powerful Django web framework for rapid development.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Admin Interface</div>
+                <p>Fully functional admin interface for content management.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">Custom Design</div>
+                <p>Beautiful, responsive design that works on all devices.</p>
+            </div>
+        </div>
+        
+        <a href="/admin/" class="admin-link">Go to Admin Panel</a>
+        
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; color: #999;">
+            <small>Built with Django {{ django_version }} • Ready for development</small>
+            {% if tenant %}
+            <br><small style="margin-top: 0.5rem; display: block;">
+                <strong>Tenant:</strong> {{ tenant.name }} ({{ tenant.domain }})
+            </small>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

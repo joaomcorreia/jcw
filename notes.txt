@@ -1,0 +1,8 @@
+Visit different URLs:
+
+http://localhost:8000/ (default tenant)
+http://acme.localhost:8000/ (Acme Corporation)
+http://techinnov.localhost:8000/ (Tech Innovations)
+http://global.localhost:8000/ (Global Services)
+http://jcwtradehub.localhost:8000/ (JCW Trade Hub)
+Admin access: http://localhost:8000/admin/ (admin/admin123)

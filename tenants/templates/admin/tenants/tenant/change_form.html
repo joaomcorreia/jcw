@@ -1,0 +1,39 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin/css/tenant_admin.css' %}">
+{% endblock %}
+
+{% block content %}
+    {% if tenant_frontend_url %}
+        <div class="tenant-actions-bar">
+            <div class="tenant-info">
+                <h3>{{ original.name }}</h3>
+                <div class="domain-info">{{ original.domain }}</div>
+            </div>
+            <div class="tenant-actions">
+                <a href="{{ tenant_frontend_url }}" 
+                   target="_blank" 
+                   class="tenant-frontend-button"
+                   title="Open {{ original.name }} frontend in new tab">
+                   Connect to Frontend
+                </a>
+            </div>
+        </div>
+        <div data-frontend-url="{{ tenant_frontend_url }}" style="display: none;"></div>
+    {% endif %}
+    
+    {{ block.super }}
+{% endblock %}
+
+{% block extrajs %}
+    {{ block.super }}
+    <script src="{% static 'admin/js/tenant_admin.js' %}"></script>
+    {% if tenant_frontend_url %}
+        <script>
+            window.tenant_frontend_url = "{{ tenant_frontend_url }}";
+        </script>
+    {% endif %}
+{% endblock %}

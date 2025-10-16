@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.urls import reverse
 from django.utils.html import format_html
+from typing import Optional
+
 
 class Tenant(models.Model):
     """Model for tenant/client management"""
@@ -26,17 +27,19 @@ class Tenant(models.Model):
     
     class Meta:
         ordering = ['name']
+        verbose_name = "Tenant"
+        verbose_name_plural = "Tenants"
         
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} ({self.domain})"
     
-    def get_frontend_url(self):
+    def get_frontend_url(self) -> str:
         """Get the full URL to the tenant's frontend"""
         protocol = 'https' if not self.domain.endswith('.localhost') else 'http'
         port = ':8000' if self.domain.endswith('.localhost') else ''
         return f"{protocol}://{self.domain}{port}/"
     
-    def get_admin_preview_html(self):
+    def get_admin_preview_html(self) -> str:
         """Generate HTML for admin preview"""
         if self.homepage_screenshot:
             return format_html(
@@ -53,6 +56,7 @@ class Tenant(models.Model):
         )
     get_admin_preview_html.short_description = "Homepage Preview"
 
+
 class TenantDomain(models.Model):
     """Additional domains that can be used for a tenant"""
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='domains')
@@ -62,9 +66,12 @@ class TenantDomain(models.Model):
     
     class Meta:
         ordering = ['domain']
+        verbose_name = "Tenant Domain"
+        verbose_name_plural = "Tenant Domains"
         
-    def __str__(self):
+    def __str__(self) -> str:
         return self.domain
+
 
 class TenantUser(models.Model):
     """Associates users with tenants"""
@@ -75,6 +82,8 @@ class TenantUser(models.Model):
     
     class Meta:
         unique_together = ['user', 'tenant']
+        verbose_name = "Tenant User"
+        verbose_name_plural = "Tenant Users"
         
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.username} @ {self.tenant.name}"

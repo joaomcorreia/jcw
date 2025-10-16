@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ business_name|default:"Your Business" }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .navbar {
+            background: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 120px 0 80px;
+            text-align: center;
+            margin-top: 70px;
+        }
+        
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .hero-section p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .section-padding {
+            padding: 80px 0;
+        }
+        
+        .about-section {
+            background: #f8f9fa;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .service-card h4 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .service-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .placeholder-img {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            height: 250px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .contact-item {
+            text-align: center;
+        }
+        
+        .contact-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .footer {
+            background: #343a40;
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .social-links a:hover {
+            color: #667eea;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .row, .services-grid, .contact-grid, .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a class="navbar-brand" href="#home">
+                    {{ business_name|default:"Your Business" }}
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <h1>Welcome to {{ business_name|default:"Your Business" }}</h1>
+            <p>
+                {% if website_type == 'hobby' %}
+                Sharing my passion and connecting with fellow enthusiasts
+                {% elif website_type == 'business' %}
+                Professional services you can trust
+                {% elif website_type == 'portfolio' %}
+                Showcasing creativity and professional work
+                {% elif website_type == 'blog' %}
+                Sharing insights, stories, and expertise
+                {% elif website_type == 'ecommerce' %}
+                Quality products delivered to your door
+                {% elif website_type == 'nonprofit' %}
+                Making a difference in our community
+                {% else %}
+                Your story starts here
+                {% endif %}
+            </p>
+            <a href="#contact" class="btn">Get Started</a>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section section-padding">
+        <div class="container">
+            <div class="row">
+                <div>
+                    <h2>About {{ business_name|default:"Us" }}</h2>
+                    <p style="font-size: 1.1rem; line-height: 1.8; color: #555;">
+                        {% if website_type == 'hobby' %}
+                        Welcome to my world of {{ business_name|default:"hobbies" }}! I'm passionate about sharing my experiences, 
+                        tips, and connecting with others who share similar interests. Join me on this exciting journey!
+                        {% elif website_type == 'business' %}
+                        We are dedicated to providing exceptional service and building lasting relationships with our clients. 
+                        Our team brings years of experience and expertise to every project we undertake.
+                        {% elif website_type == 'portfolio' %}
+                        I'm a creative professional passionate about bringing ideas to life. Take a look at my work 
+                        and see how I can help bring your vision to reality with skill and creativity.
+                        {% elif website_type == 'blog' %}
+                        This blog is where I share insights, experiences, and thoughts on topics that matter. 
+                        Join me on this journey of learning, discovery, and meaningful conversations.
+                        {% elif website_type == 'ecommerce' %}
+                        We carefully curate high-quality products that enhance your lifestyle. Every item is 
+                        selected with care and backed by our commitment to customer satisfaction.
+                        {% elif website_type == 'nonprofit' %}
+                        Our mission is to make a positive impact in the community. Through dedicated volunteers 
+                        and generous supporters, we're working to create meaningful change every day.
+                        {% else %}
+                        We're here to serve you with dedication, expertise, and a commitment to excellence. 
+                        Let us help you achieve your goals and exceed your expectations.
+                        {% endif %}
+                    </p>
+                    <a href="#contact" class="btn" style="background: #667eea; color: white;">Learn More</a>
+                </div>
+                <div>
+                    <div class="placeholder-img">
+                        📸 About Image
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services/Content Section -->
+    <section id="services" class="section-padding">
+        <div class="container">
+            <div class="text-center">
+                <h2>
+                    {% if website_type == 'hobby' %}
+                    My {{ business_name|default:"Interests" }}
+                    {% elif website_type == 'business' %}
+                    Our Services
+                    {% elif website_type == 'portfolio' %}
+                    My Work
+                    {% elif website_type == 'blog' %}
+                    Recent Posts
+                    {% elif website_type == 'ecommerce' %}
+                    Featured Products
+                    {% elif website_type == 'nonprofit' %}
+                    Our Programs
+                    {% else %}
+                    What We Offer
+                    {% endif %}
+                </h2>
+                <p style="color: #666; font-size: 1.1rem; margin-bottom: 0;">
+                    {% if website_type == 'hobby' %}
+                    Explore my favorite activities and projects
+                    {% else %}
+                    Discover what makes us special
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        {% if website_type == 'hobby' %}❤️{% elif website_type == 'portfolio' %}🎨{% else %}⚙️{% endif %}
+                    </div>
+                    <h4>
+                        {% if website_type == 'hobby' %}My Passion{% elif website_type == 'portfolio' %}Creative Design{% else %}Service One{% endif %}
+                    </h4>
+                    <p>
+                        {% if website_type == 'hobby' %}
+                        Discover my latest projects and experiences in this exciting area of interest.
+                        {% else %}
+                        Professional service designed to meet your specific needs and requirements.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        {% if website_type == 'hobby' %}📷{% elif website_type == 'portfolio' %}💻{% else %}👥{% endif %}
+                    </div>
+                    <h4>
+                        {% if website_type == 'hobby' %}Photography{% elif website_type == 'portfolio' %}Web Development{% else %}Team Work{% endif %}
+                    </h4>
+                    <p>
+                        {% if website_type == 'hobby' %}
+                        Capturing moments and sharing visual stories through my photography journey.
+                        {% else %}
+                        Collaborative approach to deliver exceptional results for your projects.
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        {% if website_type == 'hobby' %}🎨{% elif website_type == 'portfolio' %}📱{% else %}🏆{% endif %}
+                    </div>
+                    <h4>
+                        {% if website_type == 'hobby' %}Creative Projects{% elif website_type == 'portfolio' %}Mobile Apps{% else %}Excellence{% endif %}
+                    </h4>
+                    <p>
+                        {% if website_type == 'hobby' %}
+                        Exploring creativity through various artistic and hands-on projects.
+                        {% else %}
+                        Committed to delivering high-quality solutions that exceed expectations.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section section-padding">
+        <div class="container">
+            <div class="text-center">
+                <h2 style="color: white;">Get In Touch</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 2rem;">
+                    {% if website_type == 'hobby' %}
+                    I'd love to connect with fellow enthusiasts! Reach out to share experiences or ask questions.
+                    {% else %}
+                    Ready to get started? Contact us today to discuss your needs and how we can help.
+                    {% endif %}
+                </p>
+                
+                <div class="contact-grid">
+                    <div class="contact-item">
+                        <div class="contact-icon">📧</div>
+                        <h5>Email</h5>
+                        <p>{{ business_email|default:"contact@yourbusiness.com" }}</p>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📞</div>
+                        <h5>Phone</h5>
+                        <p>{{ business_phone|default:"(555) 123-4567" }}</p>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">📍</div>
+                        <h5>Location</h5>
+                        <p>{{ business_city|default:"Your City" }}, {{ business_state|default:"State" }}</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <a href="#home" class="btn" style="margin-right: 1rem;">Learn More</a>
+                    <a href="mailto:{{ business_email|default:'contact@yourbusiness.com' }}" class="btn" style="background: transparent; border: 2px solid white;">Send Message</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h5>{{ business_name|default:"Your Business" }}</h5>
+                    <p style="color: #ccc; margin: 0;">
+                        {% if website_type == 'hobby' %}
+                        Sharing passion and connecting with the community.
+                        {% else %}
+                        Your trusted partner for quality service.
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p style="color: #ccc; margin: 0;">&copy; {% now "Y" %} {{ business_name|default:"Your Business" }}. All rights reserved.</p>
+                    <div class="social-links" style="margin-top: 0.5rem;">
+                        <a href="#">📘</a>
+                        <a href="#">🐦</a>
+                        <a href="#">📷</a>
+                        <a href="#">💼</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Let parent know iframe loaded successfully
+        if (window.parent) {
+            window.parent.postMessage('iframe-loaded', '*');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!-- templates/public/register.html -->
+{% extends 'public/base.html' %}
+
+{% block title %}Register - JCW Trade Hub{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 2rem auto;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: #667eea;">Create Your Account</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}">Username:</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.username.errors.0 }}
+                    </div>
+                {% endif %}
+                <small style="color: #666; font-size: 0.875rem;">
+                    This will be used for your default site subdomain
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password1.id_for_label }}">Password:</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.password1.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.password2.id_for_label }}">Confirm Password:</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                    <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">
+                        {{ form.password2.errors.0 }}
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div style="color: #dc3545; margin-bottom: 1rem;">
+                    {{ form.non_field_errors.0 }}
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="btn" style="width: 100%; margin-bottom: 1rem;">
+                Create Account & Site
+            </button>
+        </form>
+        
+        <div style="text-align: center; padding-top: 1rem; border-top: 1px solid #eee;">
+            <p>Already have an account? <a href="{% url 'login' %}" style="color: #667eea;">Login here</a></p>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top: 1rem; background: #f8f9fa; border: 1px dashed #ddd;">
+        <h4 style="margin-bottom: 1rem; color: #667eea;">What happens next?</h4>
+        <ul style="margin-left: 1.5rem; color: #666;">
+            <li>Your account will be created instantly</li>
+            <li>A personal website will be automatically set up</li>
+            <li>You'll get a subdomain like: <code>username.localhost</code></li>
+            <li>Default content will be preloaded for you</li>
+            <li>You can start customizing immediately</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

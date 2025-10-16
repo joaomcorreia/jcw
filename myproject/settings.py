@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-uuq!$_cxgf9l$m&e$hp238$tk=wkjk_hu-^=)86_z7_yp8a=hn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+DEBUG = True  # Temporarily enabled for debugging
 
 ALLOWED_HOSTS = [
     'localhost', 
@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     # Custom apps
     'tenants',  # Multi-tenant management
     'home',
+    'website_builder',  # AI Website Builder SaaS
 ]
 
 MIDDLEWARE = [
@@ -72,7 +73,7 @@ ROOT_URLCONF = 'myproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -165,3 +166,17 @@ ALLOWED_HOSTS = ['*']
 
 # Custom tenant settings
 DEFAULT_TENANT = 'public'
+
+# Domain Registration API Configuration
+# Using OpenProvider (https://www.openprovider.com/) as domain registrar
+DOMAIN_REGISTRAR_API_URL = 'https://api.openprovider.eu/v1beta'
+DOMAIN_REGISTRAR_API_KEY = os.environ.get('OPENPROVIDER_API_KEY')
+DOMAIN_REGISTRAR_API_SECRET = os.environ.get('OPENPROVIDER_API_SECRET')
+DOMAIN_REGISTRAR_PROVIDER = 'openprovider'
+
+# Website Builder Configuration
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+
+# Payment Processing (Stripe)
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')

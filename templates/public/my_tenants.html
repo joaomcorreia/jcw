@@ -1,0 +1,114 @@
+<!-- templates/public/my_tenants.html -->
+{% extends 'public/base.html' %}
+
+{% block title %}My Sites - JCW Trade Hub{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>My Sites</h1>
+    <a href="{% url 'create_tenant' %}" class="btn">+ Create New Site</a>
+</div>
+
+{% if owned_tenants %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #667eea;">Sites You Own</h2>
+    <div style="display: grid; gap: 1rem;">
+        {% for tenant in owned_tenants %}
+        <div style="padding: 1rem; border: 1px solid #eee; border-radius: 4px; background: #f8f9fa;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <h3 style="margin-bottom: 0.5rem;">{{ tenant.name }}</h3>
+                    <p style="color: #666; margin-bottom: 0.5rem;">
+                        <strong>Schema:</strong> {{ tenant.schema_name }}<br>
+                        <strong>Plan:</strong> {{ tenant.get_plan_display }}<br>
+                        <strong>Created:</strong> {{ tenant.created_at|date:"M d, Y" }}
+                    </p>
+                    
+                    {% for domain in tenant.domains.all %}
+                    <div style="margin-bottom: 0.5rem;">
+                        <span style="background: #e9ecef; padding: 0.25rem 0.5rem; border-radius: 3px; font-family: monospace;">
+                            {{ domain.domain }}
+                        </span>
+                        {% if domain.is_primary %}
+                            <span style="background: #28a745; color: white; padding: 0.125rem 0.375rem; border-radius: 3px; font-size: 0.75rem; margin-left: 0.5rem;">
+                                PRIMARY
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div style="text-align: right;">
+                    {% if tenant.get_frontend_url %}
+                        <a href="{{ tenant.get_frontend_url }}" target="_blank" class="btn" style="margin-bottom: 0.5rem; display: block;">
+                            🌐 Visit Site
+                        </a>
+                    {% endif %}
+                    <a href="/admin/" class="btn btn-outline" style="display: block;">
+                        ⚙️ Admin
+                    </a>
+                </div>
+            </div>
+            
+            {% if tenant.homepage_screenshot %}
+            <div style="margin-top: 1rem; text-align: center;">
+                <img src="{{ tenant.homepage_screenshot.url }}" alt="Site Preview" 
+                     style="max-width: 200px; max-height: 120px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if member_tenants %}
+<div class="card">
+    <h2 style="margin-bottom: 1.5rem; color: #667eea;">Sites You're a Member Of</h2>
+    <div style="display: grid; gap: 1rem;">
+        {% for membership in member_tenants %}
+        <div style="padding: 1rem; border: 1px solid #eee; border-radius: 4px; background: #f8f9fa;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">{{ membership.tenant.name }}</h3>
+                    <p style="color: #666;">
+                        <strong>Role:</strong> {{ membership.get_role_display }}<br>
+                        <strong>Joined:</strong> {{ membership.joined_at|date:"M d, Y" }}
+                    </p>
+                </div>
+                <div>
+                    {% if membership.tenant.get_frontend_url %}
+                        <a href="{{ membership.tenant.get_frontend_url }}" target="_blank" class="btn btn-outline">
+                            🌐 Visit Site
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not owned_tenants and not member_tenants %}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <h2 style="color: #667eea; margin-bottom: 1rem;">No Sites Yet</h2>
+    <p style="color: #666; margin-bottom: 2rem;">
+        You haven't created any sites yet. Get started by creating your first multi-tenant site!
+    </p>
+    <a href="{% url 'create_tenant' %}" class="btn" style="font-size: 1.1rem; padding: 0.75rem 2rem;">
+        Create Your First Site
+    </a>
+</div>
+{% endif %}
+
+<div class="card" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); margin-top: 2rem;">
+    <h3 style="margin-bottom: 1rem;">💡 Pro Tips</h3>
+    <ul style="color: #666; margin-left: 1.5rem;">
+        <li>Each site gets its own isolated database schema</li>
+        <li>You can add custom domains in the admin panel</li>
+        <li>Invite team members to collaborate on your sites</li>
+        <li>Upgrade your plan to unlock more features</li>
+    </ul>
+</div>
+{% endblock %}

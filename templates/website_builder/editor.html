@@ -1,0 +1,759 @@
+{% extends 'website_builder/base.html' %}
+
+{% block title %}Website Editor - {{ website.name }}{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="breadcrumb">
+    <a href="{% url 'website_builder:home' %}">Home</a> / 
+    <a href="/admin/">Dashboard</a> / 
+    Edit Website
+</div>
+
+<div class="text-center mb-3">
+    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✏️</div>
+    <h1>Website Editor</h1>
+    <p style="color: #666; font-size: 1.1rem; margin-bottom: 1rem;">
+        Editing: <strong>{{ website.name }}</strong>
+    </p>
+</div>
+
+<div class="editor-toolbar" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; border: 1px solid #dee2e6;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span style="color: #666;">Status:</span> 
+            <span class="status-badge status-{{ website.status }}">{{ website.get_status_display }}</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-outline" onclick="previewWebsite()">
+                👁️ Preview
+            </button>
+            <button class="btn btn-outline" onclick="saveChanges()">
+                💾 Save Changes
+            </button>
+            {% if website.status == 'draft' %}
+            <button class="btn" onclick="publishWebsite()">
+                🚀 Publish Website
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 250px 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto;">
+    
+    <!-- Left Sidebar - Page Navigation -->
+    <div class="sidebar">
+        <div class="card">
+            <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">📄 Pages</h3>
+            <div id="page-list">
+                {% for page in website_pages %}
+                <div class="page-item {% if forloop.first %}active{% endif %}" onclick="loadPage('{{ page.id }}')">
+                    <div style="font-weight: 500;">{{ page.page_title }}</div>
+                    <div style="color: #666; font-size: 0.8rem;">{{ page.page_type }}</div>
+                </div>
+                {% empty %}
+                <div style="color: #666; font-style: italic;">No pages created yet</div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;" onclick="addNewPage()">
+                ➕ Add Page
+            </button>
+        </div>
+        
+        <div class="card" style="margin-top: 1rem;">
+            <h4 style="margin-bottom: 1rem; font-size: 1rem;">⚙️ Settings</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button class="btn btn-outline" style="font-size: 0.9rem;" onclick="editSiteSettings()">
+                    🏠 Site Settings
+                </button>
+                <button class="btn btn-outline" style="font-size: 0.9rem;" onclick="manageDomains()">
+                    🌐 Domains
+                </button>
+                <button class="btn btn-outline" style="font-size: 0.9rem;" onclick="viewAnalytics()">
+                    📊 Analytics
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Editor Area -->
+    <div class="editor-main">
+        <div class="card" id="editor-content">
+            <div id="page-editor">
+                {% if website_pages.first %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <div>
+                            <h2 id="current-page-title">{{ website_pages.first.page_title }}</h2>
+                            <p style="color: #666; margin: 0;">{{ website_pages.first.page_type|capfirst }} Page</p>
+                        </div>
+                        <button class="btn btn-outline" onclick="editPageSettings()">
+                            ⚙️ Page Settings
+                        </button>
+                    </div>
+                    
+                    <div id="content-blocks">
+                        {% if website_pages.first.content_blocks %}
+                            {% for block in website_pages.first.content_blocks %}
+                            <div class="content-block" data-block-type="{{ block.type }}">
+                                <div class="block-toolbar">
+                                    <span class="block-type">{{ block.type|capfirst }}</span>
+                                    <div class="block-actions">
+                                        <button onclick="editBlock(this)">✏️</button>
+                                        <button onclick="moveBlock(this, 'up')">⬆️</button>
+                                        <button onclick="moveBlock(this, 'down')">⬇️</button>
+                                        <button onclick="deleteBlock(this)">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="block-content">
+                                    {% if block.type == 'hero' %}
+                                        <h1>{{ block.heading }}</h1>
+                                        <p>{{ block.text }}</p>
+                                        {% if block.cta_text %}
+                                        <button class="btn">{{ block.cta_text }}</button>
+                                        {% endif %}
+                                    {% elif block.type == 'text' %}
+                                        <div>{{ block.content|safe }}</div>
+                                    {% elif block.type == 'image' %}
+                                        <img src="{{ block.src }}" alt="{{ block.alt }}" style="max-width: 100%; height: auto;">
+                                    {% else %}
+                                        <div>{{ block.content|default:"Content block" }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <div style="text-align: center; padding: 3rem; color: #666;">
+                                    <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                                    <h3>This page is empty</h3>
+                                    <p>Add content blocks to build your page</p>
+                                    <button class="btn" onclick="addContentBlock()">
+                                        ➕ Add Content Block
+                                    </button>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
+                        <button class="btn btn-outline" onclick="addContentBlock()">
+                            ➕ Add Content Block
+                        </button>
+                    </div>
+                {% else %}
+                    <!-- Bootstrap Template Preview -->
+                    <div class="template-preview-container">
+                        <div style="background: #667eea; color: white; padding: 1rem; text-align: center; border-radius: 8px 8px 0 0; margin-bottom: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4 style="margin: 0;">🎨 Website Preview</h4>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.9;">
+                                        This is how your {{ website.get_website_type_display }} website will look
+                                    </p>
+                                </div>
+                                <button class="btn" style="background: white; color: #667eea;" onclick="generateDefaultPages()">
+                                    ✨ Make This Live
+                                </button>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 600px; background: white; border-radius: 0 0 8px 8px; border: 1px solid #dee2e6;">
+                            <iframe 
+                                id="template-preview-frame"
+                                src="{% url 'website_builder:template_preview' website.website_type %}?business_name={{ website.name|urlencode }}"
+                                style="width: 100%; height: 100%; border: none; border-radius: 0 0 8px 8px;"
+                                onload="adjustTemplateIframe(this)"
+                                onerror="handleIframeError(this)"
+
+                            </iframe>
+                            <div id="template-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #667eea;">
+                                <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                                <p>Loading your website preview...</p>
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 0 0 8px 8px; text-align: center; border: 1px solid #dee2e6; border-top: none;">
+                            <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                                👆 This is a preview of your website. Click "Make This Live" to create the actual pages you can edit.
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for adding content blocks -->
+<div id="block-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Content Block</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="block-types-grid">
+                <div class="block-type-option" onclick="addBlock('hero')">
+                    <div class="block-icon">🎯</div>
+                    <div class="block-name">Hero Section</div>
+                    <div class="block-desc">Large heading with call-to-action</div>
+                </div>
+                <div class="block-type-option" onclick="addBlock('text')">
+                    <div class="block-icon">📝</div>
+                    <div class="block-name">Text Content</div>
+                    <div class="block-desc">Paragraphs and formatted text</div>
+                </div>
+                <div class="block-type-option" onclick="addBlock('image')">
+                    <div class="block-icon">🖼️</div>
+                    <div class="block-name">Image</div>
+                    <div class="block-desc">Photos and graphics</div>
+                </div>
+                <div class="block-type-option" onclick="addBlock('gallery')">
+                    <div class="block-icon">🖼️</div>
+                    <div class="block-name">Image Gallery</div>
+                    <div class="block-desc">Multiple images in a grid</div>
+                </div>
+                <div class="block-type-option" onclick="addBlock('contact')">
+                    <div class="block-icon">📞</div>
+                    <div class="block-name">Contact Form</div>
+                    <div class="block-desc">Contact form with fields</div>
+                </div>
+                <div class="block-type-option" onclick="addBlock('testimonials')">
+                    <div class="block-icon">💬</div>
+                    <div class="block-name">Testimonials</div>
+                    <div class="block-desc">Customer reviews and quotes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Iframe functions - defined first so they're available when iframe loads
+function adjustTemplateIframe(iframe) {
+    console.log('Iframe loaded successfully');
+    
+    try {
+        // Hide loading indicator
+        const loading = document.getElementById('template-loading');
+        if (loading) loading.style.display = 'none';
+        
+        // Try to adjust iframe height based on content
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (doc && doc.body) {
+            console.log('Iframe content accessible');
+            const height = Math.max(600, doc.body.scrollHeight);
+            iframe.style.height = height + 'px';
+            iframe.parentElement.style.height = height + 'px';
+        } else {
+            console.log('Iframe content not accessible, using default height');
+            iframe.style.height = '600px';
+        }
+    } catch (e) {
+        console.error('Error adjusting iframe:', e);
+        // Cross-origin restrictions - keep default height
+        iframe.style.height = '600px';
+        const loading = document.getElementById('template-loading');
+        if (loading) loading.style.display = 'none';
+    }
+}
+
+function handleIframeError(iframe) {
+    console.error('Iframe failed to load');
+    const loading = document.getElementById('template-loading');
+    if (loading) {
+        loading.innerHTML = '<div style="color: #dc3545;"><div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div><p>Preview failed to load</p></div>';
+    }
+}
+
+// Website Editor JavaScript
+let currentPageId = {% if website_pages.first %}'{{ website_pages.first.id }}'{% else %}null{% endif %};
+let hasUnsavedChanges = false;
+
+function loadPage(pageId) {
+    // Load page content via AJAX
+    fetch(`/build/api/page/${pageId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentPageId = pageId;
+                document.getElementById('current-page-title').textContent = data.page.title;
+                renderContentBlocks(data.page.content_blocks);
+                
+                // Update active page in sidebar
+                document.querySelectorAll('.page-item').forEach(item => item.classList.remove('active'));
+                event.target.closest('.page-item').classList.add('active');
+            }
+        })
+        .catch(error => console.error('Error loading page:', error));
+}
+
+function renderContentBlocks(blocks) {
+    const container = document.getElementById('content-blocks');
+    if (!blocks || blocks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div style="text-align: center; padding: 3rem; color: #666;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                    <h3>This page is empty</h3>
+                    <p>Add content blocks to build your page</p>
+                    <button class="btn" onclick="addContentBlock()">➕ Add Content Block</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    blocks.forEach((block, index) => {
+        html += renderBlock(block, index);
+    });
+    container.innerHTML = html;
+}
+
+function renderBlock(block, index) {
+    return `
+        <div class="content-block" data-block-type="${block.type}" data-index="${index}">
+            <div class="block-toolbar">
+                <span class="block-type">${block.type.charAt(0).toUpperCase() + block.type.slice(1)}</span>
+                <div class="block-actions">
+                    <button onclick="editBlock(this)">✏️</button>
+                    <button onclick="moveBlock(this, 'up')">⬆️</button>
+                    <button onclick="moveBlock(this, 'down')">⬇️</button>
+                    <button onclick="deleteBlock(this)">🗑️</button>
+                </div>
+            </div>
+            <div class="block-content">${renderBlockContent(block)}</div>
+        </div>
+    `;
+}
+
+function renderBlockContent(block) {
+    switch(block.type) {
+        case 'hero':
+            return `
+                <div class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 4rem 2rem; border-radius: 8px; text-align: center;">
+                    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">${block.heading || 'Hero Heading'}</h1>
+                    <p style="font-size: 1.2rem; margin-bottom: 1.5rem; opacity: 0.9;">${block.subheading || ''}</p>
+                    <p style="margin-bottom: 2rem;">${block.text || 'Hero description text'}</p>
+                    ${block.cta_text ? `<button class="btn" style="background: white; color: #667eea; padding: 0.75rem 2rem; border: none; border-radius: 25px; font-weight: 500;">${block.cta_text}</button>` : ''}
+                </div>
+            `;
+        case 'about':
+            return `
+                <div class="about-section" style="padding: 2rem; background: #f8f9fa; border-radius: 8px;">
+                    <h2 style="color: #333; margin-bottom: 1.5rem;">${block.heading || 'About Section'}</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center;">
+                        <div>${block.text || 'About content'}</div>
+                        <div style="text-align: center;">
+                            <img src="${block.image || '/static/images/placeholder.jpg'}" alt="About Us" style="max-width: 100%; border-radius: 8px;">
+                        </div>
+                    </div>
+                    ${block.features ? `
+                        <div style="margin-top: 2rem;">
+                            <h4>Why Choose Us:</h4>
+                            <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                                ${block.features.map(feature => `<li style="padding: 0.5rem 0;"><span style="color: #28a745;">✓</span> ${feature}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        case 'services':
+            return `
+                <div class="services-section" style="padding: 2rem;">
+                    <h2 style="text-align: center; margin-bottom: 1rem; color: #333;">${block.heading || 'Our Services'}</h2>
+                    <p style="text-align: center; color: #666; margin-bottom: 2rem;">${block.subheading || ''}</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                        ${block.services ? block.services.map(service => `
+                            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; border: 1px solid #e9ecef;">
+                                <div style="font-size: 2rem; margin-bottom: 1rem;">${service.icon || '⭐'}</div>
+                                <h4 style="color: #333; margin-bottom: 0.5rem;">${service.title}</h4>
+                                <p style="color: #666; line-height: 1.5;">${service.description}</p>
+                            </div>
+                        `).join('') : '<p>No services configured</p>'}
+                    </div>
+                </div>
+            `;
+        case 'contact':
+            const contactInfo = block.contact_info || {};
+            return `
+                <div class="contact-section" style="padding: 2rem; background: #f8f9fa; border-radius: 8px;">
+                    <h2 style="text-align: center; margin-bottom: 1rem; color: #333;">${block.heading || 'Contact Us'}</h2>
+                    <p style="text-align: center; color: #666; margin-bottom: 2rem;">${block.subheading || ''}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="contact-info">
+                            <h4 style="color: #333; margin-bottom: 1rem;">Get In Touch</h4>
+                            ${contactInfo.business_name ? `<p><strong>${contactInfo.business_name}</strong></p>` : ''}
+                            ${contactInfo.address ? `<p>📍 ${contactInfo.address}</p>` : ''}
+                            ${contactInfo.phone ? `<p>📞 ${contactInfo.phone}</p>` : ''}
+                            ${contactInfo.email ? `<p>✉️ ${contactInfo.email}</p>` : ''}
+                            ${contactInfo.hours ? `
+                                <div style="margin-top: 1rem;">
+                                    <h5>Business Hours:</h5>
+                                    ${Object.entries(contactInfo.hours).map(([day, hours]) => 
+                                        `<div style="display: flex; justify-content: space-between; padding: 0.25rem 0;"><span>${day}:</span><span>${hours}</span></div>`
+                                    ).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="contact-form">
+                            <h4 style="color: #333; margin-bottom: 1rem;">Send Message</h4>
+                            <form style="display: flex; flex-direction: column; gap: 1rem;">
+                                ${block.form_fields ? block.form_fields.map(field => `
+                                    <div>
+                                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">${field.label}${field.required ? ' *' : ''}</label>
+                                        ${field.type === 'textarea' ? 
+                                            `<textarea name="${field.name}" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;" rows="4"></textarea>` :
+                                            field.type === 'select' ? 
+                                            `<select name="${field.name}" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                                                <option value="">Choose ${field.label}</option>
+                                                ${field.options ? field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('') : ''}
+                                            </select>` :
+                                            `<input type="${field.type}" name="${field.name}" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">`
+                                        }
+                                    </div>
+                                `).join('') : ''}
+                                <button type="submit" style="background: #667eea; color: white; padding: 0.75rem; border: none; border-radius: 4px; font-weight: 500;">Send Message</button>
+                            </form>
+                        </div>
+                    </div>
+                    ${block.map_embed ? `
+                        <div style="margin-top: 2rem;">
+                            <h4 style="color: #333; margin-bottom: 1rem;">Find Us</h4>
+                            <div style="height: 300px; background: #e9ecef; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #666;">
+                                <p>🗺️ Google Maps integration available<br><small>Configure with Google Maps API key</small></p>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        case 'text':
+            return `<div style="padding: 1rem;">${block.content || 'Text content'}</div>`;
+        case 'image':
+            return `<img src="${block.src || '/static/placeholder.jpg'}" alt="${block.alt || 'Image'}" style="max-width: 100%; height: auto; border-radius: 8px;">`;
+        case 'page_header':
+            return `
+                <div style="text-align: center; padding: 2rem; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 8px; margin-bottom: 2rem;">
+                    <h1 style="color: #333; margin-bottom: 0.5rem;">${block.heading || 'Page Title'}</h1>
+                    <p style="color: #666; font-size: 1.1rem;">${block.subheading || ''}</p>
+                </div>
+            `;
+        case 'text_image':
+            return `
+                <div style="display: grid; grid-template-columns: ${block.layout === 'text_left' ? '1fr 1fr' : '1fr 1fr'}; gap: 2rem; align-items: center; padding: 2rem;">
+                    <div>${block.text || 'Content text'}</div>
+                    <div style="text-align: center;">
+                        <img src="${block.image || '/static/images/placeholder.jpg'}" alt="${block.heading || 'Image'}" style="max-width: 100%; border-radius: 8px;">
+                    </div>
+                </div>
+            `;
+        case 'team':
+            return `
+                <div style="padding: 2rem; text-align: center;">
+                    <h2 style="color: #333; margin-bottom: 1rem;">${block.heading || 'Our Team'}</h2>
+                    <p style="color: #666; margin-bottom: 2rem;">${block.text || ''}</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                        ${block.team_members ? block.team_members.map(member => `
+                            <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                                <img src="${member.image || '/static/images/team-placeholder.jpg'}" alt="${member.name}" style="width: 80px; height: 80px; border-radius: 50%; margin-bottom: 1rem; object-fit: cover;">
+                                <h4 style="color: #333; margin-bottom: 0.25rem;">${member.name}</h4>
+                                <p style="color: #667eea; font-weight: 500; margin-bottom: 0.5rem;">${member.title}</p>
+                                <p style="color: #666; font-size: 0.9rem;">${member.bio}</p>
+                            </div>
+                        `).join('') : '<p>No team members configured</p>'}
+                    </div>
+                </div>
+            `;
+        case 'cta':
+            return `
+                <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 3rem; text-align: center; border-radius: 8px; margin: 2rem 0;">
+                    <h2 style="margin-bottom: 1rem;">${block.heading || 'Ready to Get Started?'}</h2>
+                    <p style="margin-bottom: 2rem; opacity: 0.9;">${block.text || 'Contact us today!'}</p>
+                    ${block.cta_text ? `<a href="${block.cta_link || '#'}" style="background: white; color: #667eea; padding: 0.75rem 2rem; border-radius: 25px; text-decoration: none; font-weight: 500;">${block.cta_text}</a>` : ''}
+                </div>
+            `;
+        default:
+            return `<div style="padding: 1rem; background: #f8f9fa; border-radius: 4px;">${block.content || 'Content block'}</div>`;
+    }
+}
+
+function addContentBlock() {
+    document.getElementById('block-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('block-modal').style.display = 'none';
+}
+
+function addBlock(type) {
+    // Add block logic here
+    console.log('Adding block of type:', type);
+    closeModal();
+    hasUnsavedChanges = true;
+}
+
+function saveChanges() {
+    if (!hasUnsavedChanges) {
+        alert('No changes to save');
+        return;
+    }
+    
+    // Save changes via AJAX
+    fetch('/build/api/save-website/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            website_id: '{{ website.id }}',
+            changes: {
+                // Collect current changes
+            }
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            hasUnsavedChanges = false;
+            alert('Changes saved successfully!');
+        } else {
+            alert('Error saving changes: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+        alert('Error saving changes');
+    });
+}
+
+function previewWebsite() {
+    window.open('{% url "website_builder:preview" website.slug %}', '_blank');
+}
+
+function publishWebsite() {
+    if (confirm('Are you ready to publish your website? It will be live and accessible to visitors.')) {
+        fetch('/build/api/publish-website/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                website_id: '{{ website.id }}'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Website published successfully!');
+                location.reload();
+            } else {
+                alert('Error publishing website: ' + data.error);
+            }
+        });
+    }
+}
+
+function generateDefaultPages() {
+    if (confirm('Generate default pages for your website? This will create Home, About, Services, and Contact pages.')) {
+        const loadingBtn = event.target;
+        const originalText = loadingBtn.innerHTML;
+        loadingBtn.innerHTML = '🤖 Generating pages...';
+        loadingBtn.disabled = true;
+        
+        fetch('{% url "website_builder:generate_default_pages" website.slug %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                website_id: '{{ website.id }}'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Default pages generated successfully!');
+                location.reload();
+            } else {
+                alert('Error generating pages: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Generation error:', error);
+            alert('Error generating pages');
+        })
+        .finally(() => {
+            loadingBtn.innerHTML = originalText;
+            loadingBtn.disabled = false;
+        });
+    }
+}
+
+// Warn user about unsaved changes
+window.addEventListener('beforeunload', function(e) {
+    if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+</script>
+
+<style>
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-draft { background: #fff3cd; color: #856404; }
+.status-preview { background: #cff4fc; color: #055160; }
+.status-published { background: #d1ecf1; color: #0c5460; }
+
+.sidebar .page-item {
+    padding: 0.75rem;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.sidebar .page-item:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+}
+
+.sidebar .page-item.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.content-block {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.block-toolbar {
+    background: #f8f9fa;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.block-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    margin-left: 0.25rem;
+}
+
+.block-content {
+    padding: 1rem;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 1rem;
+}
+
+.block-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.block-type-option {
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.block-type-option:hover {
+    border-color: #667eea;
+    background: #f8f9fa;
+}
+
+.block-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.block-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.block-desc {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.grid {
+    display: grid;
+    gap: 2rem;
+}
+
+.grid-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+    .editor-main {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

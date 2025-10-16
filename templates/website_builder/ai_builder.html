@@ -1,0 +1,476 @@
+{% extends 'website_builder/base.html' %}
+
+{% block title %}AI Website Builder - {{ website_type_display }}{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'website_builder:home' %}">Home</a> / 
+    <a href="{% url 'website_builder:select_type' %}">Choose Type</a> / 
+    AI Builder
+</div>
+
+<div class="step-indicator">
+    <div class="step completed">1. Choose Type</div>
+    <div class="step completed">2. Create Account</div>
+    <div class="step active">3. AI Builder</div>
+    <div class="step">4. Domain Setup</div>
+    <div class="step">5. Publish</div>
+</div>
+
+<div class="text-center mb-3">
+    <div style="font-size: 3rem; margin-bottom: 0.5rem;">🤖</div>
+    <h1>AI Website Builder</h1>
+    <p style="color: #666; font-size: 1.1rem; margin-bottom: 1rem;">
+        Welcome {{ user.first_name }}! Let's create your <strong>{{ business_name }}</strong> website using AI.
+    </p>
+    <div style="background: #f0f4ff; padding: 1rem; border-radius: 8px; border: 1px solid #667eea; margin-bottom: 2rem;">
+        Building: <strong>{{ website_type_display }}</strong> 
+        {% if business_details.business_phone %}
+        | Contact: {{ business_details.business_phone }}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Two Column Layout: Form + Preview -->
+<div class="row" style="max-width: 1400px; margin: 0 auto;">
+    <!-- Left Column: AI Builder Form -->
+    <div class="col-lg-6">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="card" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+                <h3 style="margin-bottom: 1.5rem; color: #667eea;">
+                    🎯 Tell Our AI About Your Business
+                </h3>
+                <p style="color: #666; margin-bottom: 1.5rem;">
+                    Describe your business in detail. The more information you provide, the better our AI can create 
+                    a website that perfectly matches your needs and goals.
+                </p>
+                
+                <div class="form-group">
+                    <label for="website_name">Website/Business Name</label>
+                    <input type="text" name="website_name" id="website_name" class="form-control" 
+                           value="{{ business_name }}" placeholder="Your business name">
+                    <small style="color: #666;">This will be your website's main title</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="business_description">Business Description *</label>
+                    <textarea name="business_description" id="business_description" class="form-control" 
+                              rows="6" required placeholder="Tell us about your business..."></textarea>
+                    <small style="color: #666;">
+                        Describe what you do, your target customers, services/products, and what makes you unique
+                    </small>
+                    <div id="dynamic-suggestions" style="margin-top: 1rem; display: none;">
+                        <div style="background: #e3f2fd; padding: 1rem; border-radius: 6px; border-left: 3px solid #2196f3;">
+                            <div style="font-weight: 500; color: #1565c0; margin-bottom: 0.5rem;">💡 AI Suggestion</div>
+                            <div id="suggestion-text" style="color: #1976d2; font-style: italic; line-height: 1.5;"></div>
+                            <button type="button" class="btn btn-outline" style="margin-top: 0.5rem; font-size: 0.8rem;" 
+                                    onclick="useSuggestion()">
+                                ✨ Use This Suggestion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h4 style="margin-bottom: 1rem; color: #667eea;">💡 Example Descriptions for {{ website_type_display }}</h4>
+                {% for sample in sample_descriptions %}
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border-left: 3px solid #667eea;">
+                    <p style="margin: 0; font-style: italic; color: #555;">
+                        "{{ sample }}"
+                    </p>
+                    <button type="button" class="btn btn-outline" style="margin-top: 0.5rem; font-size: 0.8rem;"
+                            onclick="document.getElementById('business_description').value = '{{ sample|escapejs }}'; updateCharCount();">
+                        Use This Example
+                    </button>
+                </div>
+                {% endfor %}
+                
+                {% if not sample_descriptions %}
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 3px solid #667eea;">
+                    <p style="margin: 0; font-style: italic; color: #555;">
+                        "We are a family-owned bakery that has been serving our community for over 20 years. 
+                        We specialize in fresh bread, custom cakes, and artisanal pastries made with organic ingredients. 
+                        Our customers love our warm atmosphere and personalized service."
+                    </p>
+                    <button type="button" class="btn btn-outline" style="margin-top: 0.5rem; font-size: 0.8rem;"
+                            onclick="document.getElementById('business_description').value = this.previousElementSibling.textContent.trim().slice(1, -1);">
+                        Use This Example
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="text-center" style="margin: 2rem 0;">
+                <button type="submit" class="btn btn-large" id="generateBtn">
+                    🎨 Generate My Website with AI
+                </button>
+                <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">
+                    This usually takes 10-30 seconds
+                </p>
+            </div>
+        </form>
+        
+        <div class="card" style="background: #fff3cd; border: 1px solid #ffc107;">
+            <h4 style="margin-bottom: 1rem; color: #856404;">⚡ AI Tips for Better Results</h4>
+            <ul style="margin-left: 1.5rem; color: #856404; line-height: 1.6;">
+                <li><strong>Be Specific:</strong> Mention your location, target audience, and main services/products</li>
+                <li><strong>Include Goals:</strong> What do you want visitors to do? (buy, contact, learn, etc.)</li>
+                <li><strong>Mention Style:</strong> Professional, friendly, modern, traditional, etc.</li>
+                <li><strong>Add Details:</strong> Years in business, team size, special features, awards</li>
+                <li><strong>Target Keywords:</strong> Words your customers might search for</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Right Column: Live Preview -->
+    <div class="col-lg-6">
+        <div class="card" style="padding: 0; height: 100%; min-height: 800px;">
+            <div style="background: #667eea; color: white; padding: 1rem; text-align: center; border-radius: 8px 8px 0 0;">
+                <h4 style="margin: 0;">🔍 Live Preview</h4>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
+                    This is how your {{ website_type_display }} website will look
+                </p>
+            </div>
+            <div style="position: relative; height: calc(100% - 80px); min-height: 700px;">
+                <iframe 
+                    id="preview-frame"
+                    src="{% url 'website_builder:template_preview' website_type %}"
+                    style="width: 100%; height: 100%; border: none; border-radius: 0 0 8px 8px;"
+                    onload="adjustIframeHeight(this)">
+                </iframe>
+                <div id="preview-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #667eea;">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⏳</div>
+                    <p>Loading preview...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                <small style="color: #666;">This will be your website's main title</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="business_description">Business Description *</label>
+                <textarea name="business_description" id="business_description" class="form-control" 
+                          rows="6" required placeholder="Tell us about your business..."></textarea>
+                <small style="color: #666;">
+                    Describe what you do, your target customers, services/products, and what makes you unique
+                </small>
+                <div id="dynamic-suggestions" style="margin-top: 1rem; display: none;">
+                    <div style="background: #e3f2fd; padding: 1rem; border-radius: 6px; border-left: 3px solid #2196f3;">
+                        <div style="font-weight: 500; color: #1565c0; margin-bottom: 0.5rem;">💡 AI Suggestion</div>
+                        <div id="suggestion-text" style="color: #1976d2; font-style: italic; line-height: 1.5;"></div>
+                        <button type="button" class="btn btn-outline" style="margin-top: 0.5rem; font-size: 0.8rem;" 
+                                onclick="useSuggestion()">
+                            ✨ Use This Suggestion
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h4 style="margin-bottom: 1rem; color: #667eea;">💡 Example Descriptions for {{ website_type_display }}</h4>
+            {% for sample in sample_descriptions %}
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; border-left: 3px solid #667eea;">
+                <p style="margin: 0; font-style: italic; color: #555;">
+                    "{{ sample }}"
+                </p>
+                <button type="button" class="btn btn-outline" style="margin-top: 0.5rem; font-size: 0.8rem;"
+                        onclick="document.getElementById('business_description').value = '{{ sample|escapejs }}'; updateCharCount();">
+                    Use This Example
+                </button>
+            </div>
+            {% endfor %}
+            
+            {% if not sample_descriptions %}
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 3px solid #667eea;">
+                <p style="margin: 0; font-style: italic; color: #555;">
+                    "We are a family-owned bakery that has been serving our community for over 20 years. 
+                    We specialize in fresh bread, custom cakes, and artisanal pastries made with organic ingredients. 
+                    Our customers love our warm atmosphere and personalized service."
+                </p>
+                <button type="button" class="btn btn-outline" style="margin-top: 0.5rem; font-size: 0.8rem;"
+                        onclick="document.getElementById('business_description').value = this.previousElementSibling.textContent.trim().slice(1, -1);">
+                    Use This Example
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="text-center" style="margin: 2rem 0;">
+            <button type="submit" class="btn btn-large" id="generateBtn">
+                🎨 Generate My Website with AI
+            </button>
+            <p style="color: #666; margin-top: 0.5rem; font-size: 0.9rem;">
+                This usually takes 10-30 seconds
+            </p>
+        </div>
+    </form>
+</div>
+
+<div class="card" style="max-width: 700px; margin: 2rem auto; background: #fff3cd; border: 1px solid #ffc107;">
+    <h4 style="margin-bottom: 1rem; color: #856404;">⚡ AI Tips for Better Results</h4>
+    <ul style="margin-left: 1.5rem; color: #856404; line-height: 1.6;">
+        <li><strong>Be Specific:</strong> Mention your location, target audience, and main services/products</li>
+        <li><strong>Include Goals:</strong> What do you want visitors to do? (buy, contact, learn, etc.)</li>
+        <li><strong>Mention Style:</strong> Professional, friendly, modern, traditional, etc.</li>
+        <li><strong>Add Details:</strong> Years in business, team size, special features, awards</li>
+        <li><strong>Target Keywords:</strong> Words your customers might search for</li>
+    </ul>
+</div>
+
+<script>
+// Character counter for description
+function updateCharCount() {
+    const textarea = document.getElementById('business_description');
+    const count = textarea.value.length;
+    const counter = document.getElementById('charCount');
+    
+    if (counter) {
+        counter.textContent = `${count} characters`;
+        counter.style.color = count > 500 ? '#28a745' : '#666';
+    }
+}
+
+// Adjust iframe height based on content
+function adjustIframeHeight(iframe) {
+    try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        if (doc) {
+            iframe.style.height = Math.max(700, doc.body.scrollHeight) + 'px';
+        }
+    } catch (e) {
+        // Cross-origin restrictions - keep default height
+        iframe.style.height = '700px';
+    }
+    
+    // Hide loading indicator
+    document.getElementById('preview-loading').style.display = 'none';
+}
+
+// Real-time AI suggestions based on user input
+let suggestionTimeout;
+function generateSuggestion(userInput) {
+    clearTimeout(suggestionTimeout);
+    
+    const websiteType = '{{ website_type }}';
+    const businessName = document.getElementById('website_name').value || 'Your Business';
+    
+    // Show suggestions after user stops typing for 2 seconds
+    suggestionTimeout = setTimeout(() => {
+        if (userInput.trim().length >= 10) {
+            const suggestion = createAISuggestion(websiteType, businessName, userInput);
+            showSuggestion(suggestion);
+        } else {
+            hideSuggestion();
+        }
+    }, 2000);
+}
+
+function createAISuggestion(websiteType, businessName, userInput) {
+    const suggestions = {
+        'hobby': [
+            `Welcome to my ${businessName} page! I'm passionate about sharing my journey and connecting with fellow enthusiasts. Here you'll find tips, experiences, and inspiration for anyone interested in ${extractKeywords(userInput, ['hobby', 'passion', 'interest'])}.`,
+            `${businessName} is my creative outlet where I document my experiences and share knowledge with the community. Join me as I explore ${extractKeywords(userInput, ['activities', 'projects', 'adventures'])} and discover new techniques.`
+        ],
+        'restaurant': [
+            `${businessName} is a ${getRestaurantType(userInput)} restaurant specializing in ${extractKeywords(userInput, ['food', 'cuisine', 'dishes'])}. We pride ourselves on ${getQualityTerms(userInput)} and creating a ${getAtmosphereTerms(userInput)} dining experience for our customers.`,
+            `Welcome to ${businessName}, where we serve ${extractKeywords(userInput, ['fresh', 'homemade', 'authentic'])} ${getRestaurantType(userInput)} cuisine. Our menu features ${extractKeywords(userInput, ['specialty', 'signature', 'famous'])} dishes made with ${getIngredientTerms(userInput)}.`
+        ],
+        'business': [
+            `${businessName} is a ${getBusinessType(userInput)} company providing ${extractServices(userInput)} to ${getTargetAudience(userInput)}. With ${getExperienceTerms(userInput)}, we deliver ${getQualityTerms(userInput)} solutions that ${getValueProposition(userInput)}.`,
+            `At ${businessName}, we specialize in ${extractServices(userInput)} for ${getTargetAudience(userInput)}. Our ${getExperienceTerms(userInput)} team is committed to ${getQualityTerms(userInput)} and ${getValueProposition(userInput)}.`
+        ],
+        'ecommerce': [
+            `${businessName} offers ${extractProducts(userInput)} for ${getTargetAudience(userInput)}. We're passionate about providing ${getQualityTerms(userInput)} products with ${getServiceTerms(userInput)} customer service and ${getShippingTerms(userInput)}.`,
+            `Shop at ${businessName} for ${extractProducts(userInput)}. We curate ${getQualityTerms(userInput)} products and provide ${getServiceTerms(userInput)} shopping experience with ${getShippingTerms(userInput)} delivery.`
+        ]
+    };
+
+    const typeSuggestions = suggestions[websiteType] || suggestions['business'];
+    return typeSuggestions[Math.floor(Math.random() * typeSuggestions.length)];
+}
+
+// Helper functions to extract context from user input
+function getRestaurantType(input) {
+    const types = ['fine dining', 'casual', 'family-friendly', 'fast-casual', 'ethnic', 'modern'];
+    return extractMatch(input, types) || 'quality';
+}
+
+function getBusinessType(input) {
+    const types = ['professional', 'innovative', 'established', 'growing', 'family-owned', 'local'];
+    return extractMatch(input, types) || 'professional';
+}
+
+function extractServices(input) {
+    const services = input.match(/(consulting|services|solutions|support|maintenance|repair|design|development)/gi);
+    return services ? services.join(', ') : 'professional services';
+}
+
+function extractProducts(input) {
+    const products = input.match(/(products|items|goods|merchandise|equipment|tools|supplies)/gi);
+    return products ? 'quality ' + products[0] : 'premium products';
+}
+
+function getTargetAudience(input) {
+    const audiences = ['businesses', 'families', 'professionals', 'individuals', 'customers', 'clients'];
+    return extractMatch(input, audiences) || 'customers';
+}
+
+function getQualityTerms(input) {
+    const quality = ['high-quality', 'premium', 'excellent', 'professional', 'reliable', 'trusted'];
+    return extractMatch(input, quality) || 'high-quality';
+}
+
+function getExperienceTerms(input) {
+    const experience = input.match(/(\d+)\s*(years|year)/gi);
+    if (experience) return `over ${experience[0]} of experience`;
+    return 'years of experience';
+}
+
+function getAtmosphereTerms(input) {
+    const atmosphere = ['welcoming', 'warm', 'friendly', 'professional', 'comfortable', 'elegant'];
+    return extractMatch(input, atmosphere) || 'welcoming';
+}
+
+function getIngredientTerms(input) {
+    const ingredients = ['fresh ingredients', 'local sourcing', 'organic produce', 'quality ingredients'];
+    return extractMatch(input, ingredients) || 'fresh ingredients';
+}
+
+function getValueProposition(input) {
+    const values = ['exceed expectations', 'drive results', 'solve problems', 'create value', 'build relationships'];
+    return extractMatch(input, values) || 'exceed expectations';
+}
+
+function getServiceTerms(input) {
+    const service = ['exceptional', 'personalized', 'friendly', 'professional', 'dedicated'];
+    return extractMatch(input, service) || 'exceptional';
+}
+
+function getShippingTerms(input) {
+    const shipping = ['fast', 'free', 'reliable', 'same-day', 'worldwide'];
+    return extractMatch(input, shipping) || 'fast';
+}
+
+function extractKeywords(input, keywords) {
+    const found = keywords.filter(keyword => 
+        input.toLowerCase().includes(keyword.toLowerCase())
+    );
+    return found.length > 0 ? found.join(', ') : 'quality';
+}
+
+function extractMatch(input, options) {
+    return options.find(option => 
+        input.toLowerCase().includes(option.toLowerCase())
+    );
+}
+
+function showSuggestion(suggestionText) {
+    const suggestionDiv = document.getElementById('dynamic-suggestions');
+    const textDiv = document.getElementById('suggestion-text');
+    
+    textDiv.textContent = suggestionText;
+    suggestionDiv.style.display = 'block';
+}
+
+function hideSuggestion() {
+    document.getElementById('dynamic-suggestions').style.display = 'none';
+}
+
+function useSuggestion() {
+    const suggestionText = document.getElementById('suggestion-text').textContent;
+    const textarea = document.getElementById('business_description');
+    
+    textarea.value = suggestionText;
+    updateCharCount();
+    hideSuggestion();
+    
+    // Show feedback
+    const feedback = document.createElement('div');
+    feedback.innerHTML = '✨ AI suggestion applied! Feel free to edit and personalize it further.';
+    feedback.style.cssText = 'background: #d4edda; color: #155724; padding: 0.75rem; border-radius: 4px; margin-top: 1rem; border: 1px solid #c3e6cb;';
+    
+    document.getElementById('dynamic-suggestions').appendChild(feedback);
+    setTimeout(() => feedback.remove(), 3000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const textarea = document.getElementById('business_description');
+    
+    // Add character counter
+    const small = textarea.nextElementSibling;
+    const counter = document.createElement('div');
+    counter.id = 'charCount';
+    counter.style.cssText = 'font-size: 0.8rem; color: #666; margin-top: 0.25rem;';
+    counter.textContent = '0 characters (aim for 200+ for best results)';
+    small.parentNode.insertBefore(counter, small.nextSibling);
+    
+    textarea.addEventListener('input', function() {
+        updateCharCount();
+        generateSuggestion(this.value);
+    });
+    
+    // Also update suggestions when business name changes
+    const businessNameInput = document.getElementById('website_name');
+    businessNameInput.addEventListener('input', function() {
+        const description = textarea.value;
+        if (description.trim().length >= 10) {
+            generateSuggestion(description);
+        }
+    });
+    
+    // Form submission loading state
+    const form = document.querySelector('form');
+    const generateBtn = document.getElementById('generateBtn');
+    
+    form.addEventListener('submit', function() {
+        generateBtn.innerHTML = '🤖 AI is generating your website...';
+        generateBtn.disabled = true;
+        generateBtn.style.background = '#6c757d';
+        
+        // Add loading animation
+        const dots = document.createElement('span');
+        dots.innerHTML = '<span style="animation: blink 1s infinite;">.</span><span style="animation: blink 1s infinite 0.2s;">.</span><span style="animation: blink 1s infinite 0.4s;">.</span>';
+        generateBtn.appendChild(dots);
+    });
+});
+</script>
+
+<style>
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+#business_description {
+    min-height: 120px;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.example-item {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.example-item:hover {
+    background: #e9ecef !important;
+}
+
+/* Responsive iframe container */
+@media (max-width: 991px) {
+    .row .col-lg-6:last-child {
+        margin-top: 2rem;
+    }
+}
+
+iframe {
+    border: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}

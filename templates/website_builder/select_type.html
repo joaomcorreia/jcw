@@ -1,0 +1,112 @@
+{% extends 'website_builder/base.html' %}
+
+{% block title %}Choose Website Type - JCW Website Builder{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'website_builder:home' %}">Home</a> / Choose Website Type
+</div>
+
+<div class="step-indicator">
+    <div class="step active">1. Choose Type</div>
+    <div class="step">2. AI Builder</div>
+    <div class="step">3. Customize</div>
+    <div class="step">4. Domain Setup</div>
+    <div class="step">5. Publish</div>
+</div>
+
+<div class="text-center mb-3">
+    <h1>What Type of Website Do You Want to Build?</h1>
+    <p style="color: #666; font-size: 1.1rem;">
+        Choose the category that best matches your business or project. This helps our AI generate the perfect website for your needs.
+    </p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="grid grid-2" style="margin: 2rem 0;">
+        {% for website_type in website_types %}
+        <label class="card" style="cursor: pointer; transition: all 0.3s;" 
+               onmouseover="this.style.borderColor='#667eea'" 
+               onmouseout="this.style.borderColor='#e9ecef'"
+               onclick="document.getElementById('type_{{ website_type.value }}').checked = true; this.style.background='#f0f4ff';">
+            
+            <input type="radio" name="website_type" value="{{ website_type.value }}" 
+                   id="type_{{ website_type.value }}" style="display: none;">
+            
+            <div class="card-header">
+                <span class="card-icon">{{ website_type.icon }}</span>
+                {{ website_type.label }}
+            </div>
+            <p style="color: #666; line-height: 1.5;">{{ website_type.description }}</p>
+            
+            <div class="mt-2">
+                <span class="btn btn-outline" style="font-size: 0.9rem; pointer-events: none;">
+                    Select This Type
+                </span>
+            </div>
+        </label>
+        {% endfor %}
+    </div>
+
+    <div class="text-center" style="margin: 3rem 0;">
+        <button type="submit" class="btn btn-large">
+            Continue to AI Builder →
+        </button>
+    </div>
+</form>
+
+<script>
+// Add interactivity for website type selection
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card');
+    const radios = document.querySelectorAll('input[name="website_type"]');
+    
+    // Handle card selection
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Reset all cards
+            cards.forEach(c => {
+                c.style.background = '#f8f9fa';
+                c.style.borderColor = '#e9ecef';
+                c.querySelector('.btn').textContent = 'Select This Type';
+            });
+            
+            // Highlight selected card
+            this.style.background = '#f0f4ff';
+            this.style.borderColor = '#667eea';
+            this.querySelector('.btn').textContent = '✓ Selected';
+        });
+    });
+    
+    // Handle radio button changes
+    radios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                const card = this.closest('.card');
+                cards.forEach(c => {
+                    c.style.background = '#f8f9fa';
+                    c.style.borderColor = '#e9ecef';
+                    c.querySelector('.btn').textContent = 'Select This Type';
+                });
+                
+                card.style.background = '#f0f4ff';
+                card.style.borderColor = '#667eea';
+                card.querySelector('.btn').textContent = '✓ Selected';
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.card:hover {
+    border-color: #667eea !important;
+}
+
+input[type="radio"]:checked + .card {
+    background: #f0f4ff !important;
+    border-color: #667eea !important;
+}
+</style>
+{% endblock %}

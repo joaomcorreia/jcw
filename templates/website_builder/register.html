@@ -1,0 +1,242 @@
+{% extends 'website_builder/base.html' %}
+
+{% block title %}Create Your Account - {{ website_type_display }}{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{% url 'website_builder:home' %}">Home</a> / 
+    <a href="{% url 'website_builder:select_type' %}">Choose Type</a> / 
+    Create Account
+</div>
+
+<div class="step-indicator">
+    <div class="step completed">1. Choose Type</div>
+    <div class="step active">2. Create Account</div>
+    <div class="step">3. AI Builder</div>
+    <div class="step">4. Domain Setup</div>
+    <div class="step">5. Publish</div>
+</div>
+
+<div class="text-center mb-3">
+    <div style="font-size: 3rem; margin-bottom: 0.5rem;">{{ website_type_icon }}</div>
+    <h1>{% if is_existing_user %}Business Details{% else %}Create Your Account{% endif %}</h1>
+    <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">
+        {% if is_existing_user %}
+            Welcome back, {{ user.get_full_name|default:user.username }}! You've chosen to build a <strong>{{ website_type_display }}</strong>.<br>
+            Let's gather your business details to personalize your website.
+        {% else %}
+            You've chosen to build a <strong>{{ website_type_display }}</strong>.<br>
+            Let's create your account and gather some business details to personalize your website.
+        {% endif %}
+    </p>
+</div>
+
+<div style="max-width: 600px; margin: 0 auto;">
+    <form method="post" style="background: #f8f9fa; padding: 2rem; border-radius: 8px; border: 1px solid #e9ecef;">
+        {% csrf_token %}
+        
+        {% if not is_existing_user %}
+        <h3 style="margin-bottom: 1.5rem; color: #667eea;">👤 Your Account Information</h3>
+        
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="first_name">First Name *</label>
+                <input type="text" name="first_name" id="first_name" class="form-control" 
+                       value="{{ form_data.first_name }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="last_name">Last Name *</label>
+                <input type="text" name="last_name" id="last_name" class="form-control" 
+                       value="{{ form_data.last_name }}" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="username">Username *</label>
+            <input type="text" name="username" id="username" class="form-control" 
+                   value="{{ form_data.username }}" required 
+                   placeholder="Choose a unique username">
+            <small style="color: #666;">This will be used for your admin login</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email Address *</label>
+            <input type="email" name="email" id="email" class="form-control" 
+                   value="{{ form_data.email }}" required 
+                   placeholder="your@email.com">
+            <small style="color: #666;">We'll send important updates to this email</small>
+        </div>
+        
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" name="password" id="password" class="form-control" 
+                       required minlength="8">
+                <small style="color: #666;">At least 8 characters</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password *</label>
+                <input type="password" name="confirm_password" id="confirm_password" class="form-control" 
+                       required>
+            </div>
+        </div>
+        
+        <hr style="margin: 2rem 0; border: 1px solid #e9ecef;">
+        {% endif %}
+        
+        <hr style="margin: 2rem 0; border: 1px solid #e9ecef;">
+        
+        <h3 style="margin-bottom: 1.5rem; color: #667eea;">🏢 Business Information</h3>
+        
+        <div class="form-group">
+            <label for="business_name">Business/Website Name *</label>
+            <input type="text" name="business_name" id="business_name" class="form-control" 
+                   value="{{ form_data.business_name }}" required 
+                   placeholder="Your business or website name">
+            <small style="color: #666;">This will be your website's main title</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="business_phone">Business Phone</label>
+            <input type="tel" name="business_phone" id="business_phone" class="form-control" 
+                   value="{{ form_data.business_phone }}" 
+                   placeholder="+1 (555) 123-4567">
+            <small style="color: #666;">Optional - can be added to your website contact info</small>
+        </div>
+        
+        <hr style="margin: 2rem 0; border: 1px solid #e9ecef;">
+        
+        <h4 style="margin-bottom: 1rem; color: #667eea;">📍 Business Address</h4>
+        <p style="color: #666; margin-bottom: 1.5rem; font-size: 0.9rem;">
+            This information can be used on your website's contact page and for local SEO optimization.
+        </p>
+        
+        <div class="form-group">
+            <label for="business_address_line1">Street Address</label>
+            <input type="text" name="business_address_line1" id="business_address_line1" class="form-control" 
+                   value="{{ form_data.business_address_line1 }}" 
+                   placeholder="123 Main Street">
+        </div>
+        
+        <div class="form-group">
+            <label for="business_address_line2">Apartment, Suite, etc. (Optional)</label>
+            <input type="text" name="business_address_line2" id="business_address_line2" class="form-control" 
+                   value="{{ form_data.business_address_line2 }}" 
+                   placeholder="Suite 100, Apt 2B, etc.">
+        </div>
+        
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="business_city">City</label>
+                <input type="text" name="business_city" id="business_city" class="form-control" 
+                       value="{{ form_data.business_city }}" 
+                       placeholder="New York">
+            </div>
+            
+            <div class="form-group">
+                <label for="business_state">State/Province</label>
+                <input type="text" name="business_state" id="business_state" class="form-control" 
+                       value="{{ form_data.business_state }}" 
+                       placeholder="NY">
+            </div>
+        </div>
+        
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="business_postal_code">ZIP/Postal Code</label>
+                <input type="text" name="business_postal_code" id="business_postal_code" class="form-control" 
+                       value="{{ form_data.business_postal_code }}" 
+                       placeholder="10001">
+            </div>
+            
+            <div class="form-group">
+                <label for="business_country">Country</label>
+                <input type="text" name="business_country" id="business_country" class="form-control" 
+                       value="{{ form_data.business_country|default:'United States' }}" 
+                       placeholder="United States">
+            </div>
+        </div>
+        
+        <div class="form-group" style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-large" style="width: 100%;">
+                {% if is_existing_user %}
+                    Continue to Website Builder →
+                {% else %}
+                    Create Account & Continue to AI Builder →
+                {% endif %}
+            </button>
+        </div>
+        
+        {% if not is_existing_user %}
+        <div class="text-center" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
+            <p style="color: #666; margin-bottom: 0.5rem;">Already have an account?</p>
+            <a href="/admin/login/" style="color: #667eea; text-decoration: none;">
+                Login here to continue building
+            </a>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 2rem auto; background: #f0f4ff; border: 1px dashed #667eea;">
+    <h4 style="margin-bottom: 1rem; color: #667eea;">🚀 What happens next?</h4>
+    <ul style="margin-left: 1.5rem; color: #666; line-height: 1.6;">
+        <li><strong>Account Created:</strong> You'll get instant access to your dashboard</li>
+        <li><strong>AI Website Builder:</strong> Describe your business and our AI will create your site</li>
+        <li><strong>Customize & Review:</strong> Edit and perfect your AI-generated website</li>
+        <li><strong>Choose Domain:</strong> Free subdomain, buy new domain, or connect existing</li>
+        <li><strong>Go Live:</strong> Your professional website will be online in minutes!</li>
+    </ul>
+</div>
+
+<script>
+// Password confirmation validation
+document.addEventListener('DOMContentLoaded', function() {
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm_password');
+    
+    function validatePasswords() {
+        if (password.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Passwords do not match');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+    
+    password.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+});
+
+// Username availability check (basic client-side)
+document.getElementById('username').addEventListener('input', function() {
+    const username = this.value;
+    if (username.length >= 3) {
+        // You can add AJAX call here to check username availability
+        // For now, just basic validation
+        const validUsername = /^[a-zA-Z0-9_]+$/.test(username);
+        if (!validUsername) {
+            this.setCustomValidity('Username can only contain letters, numbers, and underscores');
+        } else {
+            this.setCustomValidity('');
+        }
+    }
+});
+</script>
+
+<style>
+.form-group input:invalid {
+    border-color: #dc3545;
+}
+
+.form-group input:valid {
+    border-color: #28a745;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102,126,234,0.2);
+}
+</style>
+{% endblock %}

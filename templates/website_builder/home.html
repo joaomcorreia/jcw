@@ -1,0 +1,125 @@
+{% extends 'website_builder/base.html' %}
+
+{% block title %}Build Your Website with AI - JCW Website Builder{% endblock %}
+
+{% block content %}
+<div class="text-center">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+        Build Your Website with AI
+    </h1>
+    <p style="font-size: 1.25rem; color: #666; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+        Create a professional website in minutes. Our AI will help you build exactly what you need based on your business description.
+    </p>
+    
+    <div class="mb-3">
+        <a href="{% url 'website_builder:select_type' %}" class="btn btn-large" style="margin: 0 0.5rem;">
+            🎨 Build Website
+        </a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'website_builder:dashboard' %}" class="btn btn-outline btn-large" style="margin: 0 0.5rem;">
+                📊 My Dashboard
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin: 4rem 0;">
+    <h2 class="text-center mb-3">How It Works</h2>
+    <div class="grid grid-3">
+        <div class="card text-center">
+            <div class="card-icon">1️⃣</div>
+            <div class="card-header">Choose Website Type</div>
+            <p>Select from e-commerce, business, blog, portfolio, and more. Each type is optimized for specific needs.</p>
+        </div>
+        
+        <div class="card text-center">
+            <div class="card-icon">🤖</div>
+            <div class="card-header">AI Builds Your Site</div>
+            <p>Describe your business and our AI will generate a complete website with content, design, and structure.</p>
+        </div>
+        
+        <div class="card text-center">
+            <div class="card-icon">🌐</div>
+            <div class="card-header">Choose Your Domain</div>
+            <p>Get a free subdomain, register a new domain, or connect your existing domain. Go live instantly!</p>
+        </div>
+    </div>
+</div>
+
+<div style="margin: 4rem 0;">
+    <h2 class="text-center mb-3">Website Types We Support</h2>
+    <div class="grid grid-2">
+        {% for value, label in website_types %}
+        <div class="card">
+            <div class="card-header">
+                <span class="card-icon">
+                    {% if value == 'ecommerce' %}🏪
+                    {% elif value == 'business' %}💼
+                    {% elif value == 'blog' %}📝
+                    {% elif value == 'portfolio' %}🎨
+                    {% elif value == 'agency' %}📊
+                    {% elif value == 'education' %}🎓
+                    {% elif value == 'restaurant' %}🍕
+                    {% elif value == 'real_estate' %}🏠
+                    {% elif value == 'nonprofit' %}🤝
+                    {% else %}🔧{% endif %}
+                </span>
+                {{ label }}
+            </div>
+            <p style="color: #666;">
+                {% if value == 'ecommerce' %}
+                    Sell products online with shopping cart, payments, and inventory management
+                {% elif value == 'business' %}
+                    Professional company website with services, team, and contact information
+                {% elif value == 'blog' %}
+                    Personal or professional blog with articles, categories, and social sharing
+                {% elif value == 'portfolio' %}
+                    Showcase your creative work, projects, and artistic achievements
+                {% elif value == 'agency' %}
+                    Marketing agency site with case studies, client testimonials, and lead generation
+                {% elif value == 'education' %}
+                    Educational platform for courses, tutorials, and learning resources
+                {% elif value == 'restaurant' %}
+                    Restaurant website with menu, reservations, and online ordering
+                {% elif value == 'real_estate' %}
+                    Real estate site with property listings, search, and agent profiles
+                {% elif value == 'nonprofit' %}
+                    Non-profit organization site with donation system and volunteer management
+                {% else %}
+                    Custom website tailored to your specific business needs
+                {% endif %}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); text-align: center; margin: 3rem 0;">
+    <h2 style="margin-bottom: 1rem;">Ready to Build Your Website?</h2>
+    <p style="margin-bottom: 2rem; color: #666;">
+        Join thousands of businesses who've created their professional website in minutes with our AI-powered builder.
+    </p>
+    <a href="{% url 'website_builder:select_type' %}" class="btn btn-large">
+        🚀 Start Building Now
+    </a>
+</div>
+
+{% if recent_websites %}
+<div style="margin: 4rem 0;">
+    <h2 class="text-center mb-3">Recent Websites Built</h2>
+    <div class="grid grid-3">
+        {% for website in recent_websites %}
+        <div class="card">
+            <div class="card-header">{{ website.name }}</div>
+            <p style="color: #666; margin-bottom: 1rem;">{{ website.get_website_type_display }}</p>
+            {% if website.get_live_url %}
+                <a href="{{ website.get_live_url }}" target="_blank" class="btn btn-outline" style="font-size: 0.9rem;">
+                    Visit Site →
+                </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

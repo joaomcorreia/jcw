@@ -28,12 +28,16 @@ SECRET_KEY = 'django-insecure-uuq!$_cxgf9l$m&e$hp238$tk=wkjk_hu-^=)86_z7_yp8a=hn
 DEBUG = True  # Temporarily enabled for debugging
 
 ALLOWED_HOSTS = [
-    'localhost', 
+    'localhost',
     '127.0.0.1',
     '.render.com',  # Render.com domains
-    'jcwtradehub.com',
-    'www.jcwtradehub.com',
+    'justcodeworks.eu',            # Main domain
+    'www.justcodeworks.eu',        # Optional www version
+    'jcwtradehub.com',             # Tenant domain
+    'www.jcwtradehub.com',         # Optional www version
 ]
+
+
 
 # Add your Render service URL when you get it
 if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
